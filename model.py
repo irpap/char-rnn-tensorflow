@@ -100,26 +100,36 @@ class Model():
             s = np.sum(weights)
             return(int(np.searchsorted(t, np.random.rand(1)*s)))
 
-        ret = prime
+        ret = ""
         char = prime[-1]
-        for n in range(num):
-            x = np.zeros((1, 1))
-            x[0, 0] = vocab[char]
-            feed = {self.input_data: x, self.initial_state: state}
-            [probs, state] = sess.run([self.probs, self.final_state], feed)
-            p = probs[0]
+        generatedNonSpace = False
 
-            if sampling_type == 0:
-                sample = np.argmax(p)
-            elif sampling_type == 2:
-                if char == ' ':
-                    sample = weighted_pick(p)
-                else:
+        while True:
+            for n in range(num):
+                x = np.zeros((1, 1))
+                x[0, 0] = vocab[char]
+                feed = {self.input_data: x, self.initial_state: state}
+                [probs, state] = sess.run([self.probs, self.final_state], feed)
+                p = probs[0]
+
+                if sampling_type == 0:
                     sample = np.argmax(p)
-            else:  # sampling_type == 1 default:
-                sample = weighted_pick(p)
+                elif sampling_type == 2:
+                    if char == ' ':
+                        sample = weighted_pick(p)
+                    else:
+                        sample = np.argmax(p)
+                else:  # sampling_type == 1 default:
+                    sample = weighted_pick(p)
 
-            pred = chars[sample]
-            ret += pred
-            char = pred
+                pred = chars[sample]
+                ret += pred
+                char = pred
+                #
+                if not char.isspace():
+                    generatedNonSpace = True
+
+                if char.isspace() and generatedNonSpace:
+                    return ret
+
         return ret
